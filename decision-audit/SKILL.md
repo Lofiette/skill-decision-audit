@@ -1,5 +1,5 @@
 ---
-name: decide-under-uncertainty
+name: decision-audit
 description: "Use before choosing between approaches, libraries, configs or fixes; before editing a file you have not read or any write whose choice is still open; before every delete, move, process kill, write-API call or shared-surface change, even one the user ordered; and when the user answers a decision this skill handed over. Also when the user says decide, pick, which is better, or what should I do. Proves the leader with facts, gets an independent review, hands close calls to the user."
 ---
 
@@ -121,7 +121,7 @@ Close with a one-line **recommendation**. It never hides the others; the user se
 
 An independent reviewer checks the candidates before any state change chosen through this procedure. Skip it for a preference-only choice between reversible, local candidates: the user's choice is the check.
 
-Spawn the reviewer with `subagent` and `run_in_background: false`, and take no state-changing action until its verdict is in. Do not use `subagent_fork`: a fork shares your history and your model, so it is not independent.
+Spawn the reviewer with `subagent`. It runs in the background: the call returns an id at once, and the verdict arrives later as the reviewer's message or the runtime's completion notice. Take no state-changing action until the verdict is in. Do any read-only work that remains; otherwise end your turn and continue when the verdict arrives. Do not sleep or poll for it. Do not use `subagent_fork`: a fork shares your history and your model, so it is not independent.
 
 The reviewer starts with an empty conversation. Its brief must contain:
 
