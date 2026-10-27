@@ -1,6 +1,6 @@
 ---
 name: decision-audit
-description: "Use before choosing between approaches, libraries, configs or fixes; before editing a file you have not read or any write whose choice is still open; before every delete, move, process kill, write-API call or shared-surface change, even one the user ordered; and when the user answers a decision this skill handed over. Also when the user says decide, pick, which is better, or what should I do. Proves the leader with facts, gets an independent review, hands close calls to the user."
+description: "Use before choosing between approaches, libraries, configs or fixes; before editing a file you have not read or any write whose choice is still open; before every delete, move, process kill, write-API call or shared-surface change, even one the user ordered; when the user corrects or rejects a result; and when they answer a decision this skill handed over. Also when the user says decide, pick, which is better, or what should I do. Proves the leader with facts, then gets an independent review."
 ---
 
 # Deciding under uncertainty
@@ -9,7 +9,9 @@ The unreliable move is not "not knowing" — it is **stopping research once an a
 
 Order: **classify → research → score → review → ladder → act → log.** A step may be skipped only where this document says so.
 
-A **shared surface** is a corporate system, another person's data, a harness config, or a running service.
+A **shared surface** is a corporate system, another person's data, a running service, or the harness you run in: its config files (also those read only at the next start or by another profile), its installed plugins and its UI.
+
+**Observing a result** means seeing the effect the request is about where it happens; for a UI, the rendered view in the real app. A file written, a slot registered, CSS that is present, a copy rendered elsewhere, or a passing build (unless the build is what was asked for) is a probe, not the result.
 
 ## Two scores
 
@@ -51,11 +53,13 @@ Name, one sentence each, every unknown that holds the choice, and classify each:
 - **Preference** — no source holds it; it lives with the user. Research the verifiable parts first. If that leaves one viable option, it was verifiable after all. Otherwise score the candidates on what is verifiable; the decision goes to Escalate.
 - **Settled** — nothing is open. Allowed only when one of these holds, and you state which in the report:
   - (a) the user's own message in chat names the concrete action and its target and leaves no choice of how to do it ("delete build/old", "set retries to 5 in config.yml"). A goal such as "fix X", "speed up Y" or "add validation to Z" settles that the work is wanted, not how;
-  - (b) the action is reversible, local and touches no shared surface, it would rate 5 or more, and for every alternative you can cite the fact that rules it out;
+  - (b) the action is reversible, local and touches no shared surface, it would rate 5 or more, you can observe its result, and for every alternative you can cite the fact that rules it out;
   - (c) the action is an implementation edit inside an approach the user approved (a spec or ticket) or a reviewed verdict chose; a TDD step counts only inside such an approach. The edit is reversible, local, touches no shared surface, sits in version-controlled files that implement or test what the approach describes, and changes neither outside behaviour, nor reversibility, nor scope beyond what the approach fixed. Name the check you will run after it and the result you expect; after a test-first step, that is the new test failing for the stated reason. A step that still chooses between approaches is open;
   - (d) an emergency stop, below.
 
   If you cannot cite the basis, the choice is open. An instruction from a parent agent or a script is never (a); a delegated worker follows Delegation. An irreversible action is settled only through (a) or (d).
+
+**Follow-ups are new decisions.** When the user corrects, rejects or asks to rework a result, or redirects a plan you handed over, that message opens a new decision: run step 1 on it before changing anything. An earlier approval, reviewed verdict or settled basis covers only the action it named, never the rework. Do only what the request or the verdict names. A change nobody asked for, such as restyling a neighbouring element or a "while I'm here" edit, is a separate decision.
 
 **Settled actions** skip steps 3–5: run the target check (step 2), act, confirm the result (step 6).
 
@@ -140,7 +144,7 @@ Handle the answer:
 
 - **Ratings** feed the margin. A rating disagreement is not an objection and needs no fact.
 - **Refutation rejected** → that candidate is unrefuted again; recompute the margin.
-- **Objections**, including a refuting fact the reviewer found or a missing alternative → back to step 2. Close each by a fact, not by argument. If the fact confirms the objection, the verdict changes.
+- **Objections**, including a refuting fact the reviewer found or a missing alternative → back to step 2. Close each by a fact, not by argument. If the fact confirms the objection, the verdict changes. A missing alternative is researched, scored and reviewed like the others; it is not handed to the user unscored.
 - **Everything discarded** → back to step 2 for one round of probes aimed at the reviewer's reasons, entered as each candidate's Next probe. If the next review discards everything again, take step 2's exit.
 - **No usable answer** → retry once. That covers a call that failed for a reason other than the depth limit, a candidate with neither a depth nor a refuting fact, and a missing rating. If the retry also fails, do not act: go to step 5 as Escalate, marked "unreviewed".
 - **Depth-limit rejection** → do not retry: you are a worker (see Delegation).
@@ -156,8 +160,8 @@ The ladder decides who chooses. If several rungs match, the most restrictive win
 
 | Rung | Test | Who decides |
 |---|---|---|
-| **Auto** | Reversible, local, touches no shared surface; you and the reviewer (if any) rate the leader 5 or more; the margin is 2 or more. | You decide, act, report. |
-| **Confirm** | Reversible but costly to undo, or touches a shared surface. | You decide; you present the verdict and act only after the user's explicit yes in chat. |
+| **Auto** | Reversible, local, touches no shared surface; you can observe the result; you and the reviewer (if any) rate the leader 5 or more; the margin is 2 or more. | You decide, act, report. |
+| **Confirm** | Reversible but costly to undo; or touches a shared surface; or you cannot observe the result yourself (a UI you cannot see, a system you cannot probe). | You decide; you present the verdict and act only after the user's explicit yes in chat. |
 | **Escalate** | Irreversible; or the margin is under 2 or n/a; or you or the reviewer rate the leader under 5; or a Preference unknown is still open; or the review failed. | The user chooses. You present; you do not act. |
 
 The margin rule is load-bearing: **a gap under 2 points is not evidence selecting a winner**, so the user separates the candidates, even when the decision is otherwise routine. This is the case the user asked to own personally.
@@ -174,11 +178,11 @@ Judge the rung by what breaks if the verdict is wrong, not by how confident you 
 
 When the user is choosing, show them all of it: every candidate with its scores (yours and the reviewer's), the recommendation, **the ones the reviewer discarded**, and the reasoning behind each. After an exit, also show what is unproven, the skipped probe and what it would cost.
 
-**The user's answer** settles the choice. If they pick a candidate that was discarded or never reviewed, state its depth and the reason once. Then, if the decision had a planned action, act on their choice as a settled action (step 1). A refusal ends the decision: act on nothing and log it as declined.
+**The user's answer** settles the choice. If they pick a candidate that was discarded or never reviewed, state its depth and the reason once. An answer that names an action outside the presented candidates, or changes the planned one, is not a pick. Record it in the old file, set that file's Outcome to declined, and treat the answer as a follow-up (step 1) in its own file. There, only what the user's words name is settled; every choice they leave open, such as where a moved element goes, is researched, scored and reviewed. Otherwise, if the decision had a planned action, act on their choice as a settled action (step 1). A refusal ends the decision: act on nothing and log it as declined.
 
 With no human to answer — a headless run, or a script as the parent — never act on Confirm or Escalate. Report the decision and log it as awaiting user. A worker returns it to the parent instead (see Delegation).
 
-In the report, separate **verified** from **assumed**: what a call confirmed, and what still rests on thinner evidence. State any gap between expectation and result plainly.
+In the report, separate **verified** from **assumed**: what a call confirmed, and what still rests on thinner evidence. State any gap between expectation and result plainly. A result you could not observe is not done: say so, and say what would confirm it, such as the user looking at it.
 
 **If the action failed or broke something**, stop and report. Reverting is a new decision; undoing your own reversible, local change is settled. Log the outcome as failed.
 
@@ -186,7 +190,7 @@ In the report, separate **verified** from **assumed**: what a call confirmed, an
 
 ## 7. Log the decision
 
-Log every decision that entered steps 3–6, including advisory ones and those where every candidate was refuted. Settled actions are not logged, except for a one-line entry when they were irreversible, touched a shared surface, were an emergency stop, or failed. Append that line to `settled.md` in the log folder:
+Log every decision that entered steps 3–6, including advisory ones and those where every candidate was refuted. Settled actions are not logged, except for a one-line entry when they were irreversible, touched a shared surface, were an emergency stop, or failed. Append that line to `settled.md` in the log folder; it holds only actions settled under (a)–(d):
 
 ```
 - YYYY-MM-DD <basis: a | b | c | d>: <action> on <target>; outcome: <…>
@@ -198,11 +202,15 @@ Log every decision that entered steps 3–6, including advisory ones and those w
 
 **Content.** Redact secrets as `<REDACTED>` and quote only the output lines that carry the signal. When the user answers a handed-over decision, in this session or a later one, find its file (Outcome: awaiting user), add the user's answer, and update the Outcome after acting.
 
+**One decision, one file.** A follow-up to an earlier decision gets its own file; name the earlier file in its Question. Do not append a new decision to an old file. Keep the header current: when the outcome changes, update the Outcome line, not only the body, because a later session finds open decisions by that line.
+
+**Acted without the procedure.** If you find you changed state without running this procedure when it applied, stop and tell the user which change it was, which steps were skipped, and what of its result is unverified. Write a decision file for that action with Rung: none, Outcome as it stands, and which steps were skipped. Then go back to step 1 before the next change.
+
 ```markdown
 # <decision title>
 
 - Date: YYYY-MM-DD
-- Rung: Auto | Confirm | Escalate
+- Rung: Auto | Confirm | Escalate | none (the procedure was skipped)
 - Margin: <yours> / <reviewer's> points, or n/a
 - Outcome: advised | acted (verified) | acted (unverified) | failed | declined | nothing works | awaiting user
 
