@@ -57,8 +57,9 @@ LICENSE       MIT
 ## Decisions
 
 - **Run the `decision-audit` skill whenever a choice is not already settled by a fact, and
-  before every delete, move, process kill, write-API call or shared-surface change, even when the
-  user ordered it or it looks settled.** The skill's step 1 decides whether an action is settled and
+  before every delete, move, process kill, write-API call or shared-surface change (another person's
+  data, a corporate system, a running service, or the harness itself: its config, installed plugins
+  and UI), even when the user ordered it or it looks settled.** The skill's step 1 decides whether an action is settled and
   what a settled action still requires (target check, log line). It also covers choosing between
   approaches, libraries, configs or fixes, and editing a file you have not read. Diagnosis itself
   runs in `diagnosing-bugs` when it is available; this skill takes over before a fix is applied.
@@ -72,8 +73,9 @@ LICENSE       MIT
 - **Log every decision the skill scored or handed over to `<project>/.dsh/decisions/`**, rejected
   candidates included. When the user is choosing, they see the discarded candidates and the full
   reasoning too.
-- **When the user answers a decision the skill handed over, load the skill again before acting on
-  the answer.**
+- **When the user corrects, rejects or asks to rework a result, or answers a decision the skill
+  handed over, load the skill again before changing anything.** A rework is a new decision: an
+  earlier approval covers only what it named.
 ```
 
 ## Логи
