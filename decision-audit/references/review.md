@@ -1,32 +1,65 @@
-# Review (step 4)
+# Check (step 4)
 
-Read this when step 4 applies: before any state change chosen through the procedure, unless it is a preference-only choice between reversible, local candidates.
+Read this at step 4: the light check when every Light condition there holds, a review otherwise.
 
-## Spawn and wait
+## Light check
 
-Spawn one reviewer with `subagent`. Do not use `subagent_fork`: a fork shares your history and model, so it is not independent. `subagent` runs in the background: the call returns an id at once, and the verdict arrives later as the reviewer's message or the runtime's completion notice.
+It replaces the reviewer, not the evidence: the leader still needs depth 9.
 
-Make the spawn the last call of your message and end your turn. Until the verdict is in:
+1. **Undo first.** Write the one command that restores the prior state, e.g. `git checkout <commit> -- <path>`, or copying `<backup>` over `<path>`. Not committed yet: copy the files aside now. The undo must not need the changed code to run.
+2. **Three answers, each resting on a fact** (command output or `file:line`): does it break what works now (callers, code it shares, states it was not built for)? Is a mandatory consequence missing (reload or restart, migration, dependency, cleanup on unload)? Does it do what the user asked, within their constraints, and nothing more? An answer without a fact is a doubt: review instead.
 
-- take no state-changing action;
-- do not poll (`list_agents`, `job_list`, `job_output` with a wait) and do not sleep;
-- do not re-probe the questions you put in the brief;
-- do not ask the user to choose; a Confirm or Escalate choice is presented only after the verdict, with both raters' scores.
+The check has **passed** when the undo is written and all three answers rest on facts. Nothing is changed yet: go to step 5. Only on the Light rung, in step 6:
 
-The only work allowed while waiting: draft the decision file per `references/log.md` (read it now), with your own scores and evidence (Outcome: awaiting review).
+- **Act and observe** in the state that exercises the change, and in one it was not built for (another tab, section or theme) if you can reach it. Keys, clicks or a reload in the user's live app need their yes first, each time.
+- **Report** what changed, how you observed it, the runner-up with what put it second, and the undo.
+- **Failure** or a side effect: run the undo, confirm the prior state is back, report. A retry is a new decision on the review path, never settled (b) or (c).
+- **Log** one `settled.md` line (`references/log.md`).
 
-## The brief
+## Review
 
-The reviewer starts with an empty conversation. The brief contains:
+Do these in order; the spawn comes last.
 
-1. the user's request verbatim, plus every constraint the user stated earlier that bears on the action or the target;
-2. each unknown and its kind;
-3. every candidate and the facts it rests on: the command and the relevant output lines, or `file:line`;
-4. refuted candidates with the refuting fact;
-5. the exact planned action and its target;
-6. both anchor tables below, with the rule: rate a candidate as if its unconfirmed points hold; whatever is unconfirmed lowers depth, not the rating.
+1. Fill in the brief skeleton below.
+2. Check it before sending: no candidate carries a rating, depth or score of yours, in any language or form ("rating 8", "8/10", "Оценка 8, глубина 9"). Rating and depth numbers appear only in the anchor tables.
+3. Draft the decision file (`references/log.md`, read it now) with your scores, the evidence and Outcome: awaiting review. Your scores go there, never in the brief.
+4. Spawn one reviewer with `subagent`, passing the brief. Not `subagent_fork`: a fork shares your history and model, so it is not independent.
+5. When the call returns an id, write one line with no tool call, e.g. "Review requested; I continue when the verdict arrives." That ends your turn.
 
-Do not send your ratings or depth estimates.
+The verdict arrives as the reviewer's message or the runtime's completion notice and starts your next turn; nothing you call brings it sooner. Until then: no state change; no `list_agents`, `job_list`, `job_output` or sleep; no re-probing what the brief asks; no asking the user to choose (Confirm and Escalate are presented after the verdict, with both raters' scores). Anything else belongs before the spawn or after the verdict.
+
+### Brief skeleton
+
+The reviewer starts with an empty conversation. Copy the block, fill every `<…>`, add nothing outside it; any language.
+
+```text
+## Request
+<the user's request, verbatim>
+Earlier constraints from the user on this action or target: <each, quoted, or "none">
+
+## Unknowns
+- <unknown>: <Verifiable | Preference | Settled (a-d)>
+
+## Candidates
+### C1. <name>
+What it does: <one or two lines>
+Rests on: <command and the output lines that matter, or file:line>
+Known caveats: <facts only, not how much they matter; or "none found">
+
+### C2. <name>
+<the same three lines; one block per unrefuted candidate>
+
+## Refuted
+- <candidate>: <the refuting fact and its source>, or "none"
+
+## Planned action
+Action: <exact action>
+Target: <exact path, identifier, PID or host>
+Observation: <how the result will be observed>
+Undo: <how it is undone>
+
+## Scales
+Rate a candidate as if its unconfirmed points hold; whatever is unconfirmed lowers depth, not the rating.
 
 | Rating | Anchor |
 |---|---|
@@ -42,9 +75,13 @@ Do not send your ratings or depth estimates.
 | 9 | proven; only minor consequences unconfirmed, nothing material |
 | 8 or below | something material still rests on inference |
 
-Then append:
+## Your task
+You are an independent reviewer. Work read-only: you may read files and rerun read-only probes; change nothing. For every unrefuted candidate, set your own evidence depth (0-10) from the facts given, using the depth anchors, and your own option rating (0-10), using the rating anchors; you are not shown the author's scores. If a probe refutes a candidate, quote the fact instead of a depth. For each refuted candidate, say whether the cited fact actually rules it out; if it does not, give it a depth and a rating like the others. Discard every candidate with depth 8 or below. For the survivors, check (a) technical soundness: will it break what currently works; (b) completeness: is a mandatory consequence missing (migration, dependency, restart, rollback); (c) target: does it address what the user actually asked, within their constraints. If an obvious alternative that could rate within 2 points of the best one is missing, name it as an objection and describe it, without a rating or depth. Return: depth and rating per candidate (or the refuting fact), which ones you discarded and why, and concrete objections for the survivors, or "no objections".
+```
 
-> You are an independent reviewer. Work read-only: you may read files and rerun read-only probes; change nothing. For every unrefuted candidate, set your own **evidence depth** (0–10) from the facts given, using the depth anchors, and your own **option rating** (0–10), using the rating anchors; you are not shown the author's scores. If a probe refutes a candidate, quote the fact instead of a depth. For each refuted candidate, say whether the cited fact actually rules it out; if it does not, give it a depth and a rating like the others. Discard every candidate with depth 8 or below. For the survivors, check (a) technical soundness — will it break what currently works; (b) completeness — is a mandatory consequence missing (migration, dependency, restart, rollback); (c) target — does it address what the user actually asked, within their constraints. If an obvious alternative that could rate within 2 points of the best one is missing, name it as an objection and describe it, without a rating or depth. Return: depth and rating per candidate (or the refuting fact), which ones you discarded and why, and concrete objections for the survivors, or "no objections".
+## Margin
+
+The leader's rating minus the best other unrefuted candidate's, at the bar or not, computed with your ratings and again with the reviewer's for the same leader; if either is under 2, it is under 2. A margin of 2+ counts only if the runner-up's rating rests on a cited fact. No unrefuted rival: met.
 
 ## Handle the answer
 

@@ -4,14 +4,14 @@ Read this before delegating a state change, and when you are a delegated worker.
 
 ## When you delegate a state change
 
-Pass only an action you may take yourself: a settled one (step 1), or a verdict that has cleared step 5 (Auto, or Confirm/Escalate after the user answered). The brief states:
+Pass only an action you may take yourself: a settled one (step 1), or a verdict that has cleared step 5 (Light or Auto, or Confirm/Escalate after the user answered). The brief states:
 
 - the basis — the reviewed verdict, the user's words quoted, the approved spec or ticket, or the deciding fact;
 - the exact action and its targets, with the target check (step 2);
-- the rung, or "settled (a | b | c | d)";
+- the rung, or "settled (a | b | c | d)"; for Light, the undo command too;
 - "You are a delegated worker; do not spawn a reviewer."
 
-When the worker returns, you confirm the result and write the log. A decision it returns enters your step 3: score it, review it and place it on the ladder before anyone acts on it.
+When the worker returns, you confirm the result and write the log. A decision it returns enters your step 3: score it, check it and place it on the ladder before anyone acts on it.
 
 ## When you are the worker
 
